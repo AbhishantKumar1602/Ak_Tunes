@@ -502,9 +502,10 @@ async function searchSongsOnline(query) {
 
         allSongs = allSongs.concat(firstPageSongs);
 
-        // Render first page immediately
-        songs = [...allSongs];
-        lastSearchedSongs = [...songs];
+        // Shuffle the songs so order is different every load
+        const shuffledSongs = [...allSongs].sort(() => Math.random() - 0.5);
+        songs = shuffledSongs;
+        lastSearchedSongs = [...shuffledSongs];
         renderSongs(songs);
         hideLoading();
 
@@ -524,8 +525,10 @@ async function searchSongsOnline(query) {
                         })).filter(song => song.filePath);
                         // Append to list and render new songs
                         allSongs = allSongs.concat(secondPageSongs);
-                        songs = [...allSongs];
-                        lastSearchedSongs = [...songs];
+                        // Shuffle after adding new songs
+                        const shuffledSongs = [...allSongs].sort(() => Math.random() - 0.5);
+                        songs = shuffledSongs;
+                        lastSearchedSongs = [...shuffledSongs];
                         appendSongsToList(secondPageSongs);
                     }
                 });
@@ -544,8 +547,10 @@ async function searchSongsOnline(query) {
                             coverPath: song.image?.length ? song.image[song.image.length - 1].url : "https://via.placeholder.com/60x60/6366f1/ffffff?text=🎵",
                         })).filter(song => song.filePath);
                         allSongs = allSongs.concat(moreSongs);
-                        songs = [...allSongs];
-                        lastSearchedSongs = [...songs];
+                        // Shuffle after adding new songs
+                        const shuffledSongs = [...allSongs].sort(() => Math.random() - 0.5);
+                        songs = shuffledSongs;
+                        lastSearchedSongs = [...shuffledSongs];
                         appendSongsToList(moreSongs);
                     }
                 });
@@ -563,8 +568,10 @@ async function searchSongsOnline(query) {
 
     } catch (err) {
         console.warn("API failed, using fallback songs.", err);
-        songs = localSongs;
-        lastSearchedSongs = [...localSongs];
+        // Shuffle localSongs before assigning
+        const shuffledLocalSongs = [...localSongs].sort(() => Math.random() - 0.5);
+        songs = shuffledLocalSongs;
+        lastSearchedSongs = [...shuffledLocalSongs];
         renderSongs(songs);
         showNotification('Using offline songs', 'warning');
         hideLoading();
@@ -790,8 +797,10 @@ function initApp() {
         }
     });
 
-    songs = localSongs;
-    lastSearchedSongs = [...localSongs];
+    // Shuffle localSongs for a different order on every load
+    const shuffledLocalSongs = [...localSongs].sort(() => Math.random() - 0.5);
+    songs = shuffledLocalSongs;
+    lastSearchedSongs = [...shuffledLocalSongs];
 
     // Add dynamic CSS styles for the app
     if (!document.getElementById('dynamicStyles')) {
