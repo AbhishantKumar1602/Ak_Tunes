@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AK Tunes | Free Music Download | AK Music Royalty-Free MP3 Songs</title>
+    <meta name="description" content="AK Tunes is your source for free music download. Discover AK Music with royalty-free, no copyright MP3 songs for YouTube, projects, and creators. 100% free downloads.">
+    <meta name="keywords" content="AK Tunes, free music download, AK Music, royalty free songs, no copyright mp3, free mp3 songs, background music for YouTube">
+    <h1 style="display: none;" class="sr-only">AK Tunes – Free Music Download Platform</h1>
+    <h2 style="display: none;" class="sr-only">Discover Royalty-Free AK Music & MP3 Songs</h2>
+    <meta name="google-site-verification" content="V7zJLglGstwZoXQqanl310q-em3ToWPmnbOVBQeLVf0" />
+    <meta name="author" content="AK Tunes">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://aktunes.netlify.app/">
+    <meta property="og:title" content="AK Tunes - Free Music for Everyone">
+    <meta property="og:description" content="Download royalty-free music with no copyright claim.">
+    <meta property="og:url" content="https://aktunes.netlify.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://aktunes.netlify.app/ak.png">
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "AK Tunes",
+            "url": "https://aktunes.netlify.app",
+            "description": "Free royalty-free music downloads for content creators",
+            "sameAs": [
+                "https://twitter.com/aktunes",
+                "https://instagram.com/aktunes"
+            ]
+        }
+    </script>
+</head>
+
+<body>
+  <!-- Background Gradient -->
+  <div class="bg-gradient"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <ul>
+      <li>
+        <a href="#" class="brand">
+          <img src="ak.png" alt="AK Music App Logo" />
+          <span>AK Tunes</span>
+        </a>
+      </li>
+      <li class="search-item">
+        <div class="search-bar">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Search for songs, artists, or albums..." />
+          <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
+      </li>
+
+      <div class="nav-links" id="navLinks">
+        <li><a href="home.html" class="nav-link active" data-page="home.html">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about.html">About</a></li>
+        <li><a href="artists.html" class="nav-link" data-page="artists.html">Artists</a></li>
+        <li><a href="contact.html" class="nav-link" data-page="contact.html">Contact</a></li>
+      </div>
+      
+      <li class="nav-action-item">
+        <button id="theme-toggle" class="control-btn" title="Toggle theme" aria-label="Toggle theme">
+          <i class="fas fa-sun"></i>
+        </button>
+      </li>
+
+      <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </ul>
+  </nav>
+
+  <!-- Dynamic Content -->
+  <main id="pageContent">
+
+    <!-- home.html loads here -->
+  
+  </main>
+
+  <!-- Bottom Player -->
+  <div class="bottom">
+      <div class="progress-container">
+          <input type="range" id="myProgressBar" value="0" min="0" max="100" step="0.01" />
+      </div>
+      <div class="time-display">
+          <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+      </div>
+      <div class="bottom-row">
+          <div class="songInfo" id="songInfo">
+              <div class="song-artwork">
+                  <img src="playing.gif" width="40px" id="playingGif" style="opacity: 0" alt="Playing animation" />
+              </div>
+              <div class="song-details">
+                  <span id="currentSongName">Select a song to play</span>
+                  <span class="song-artist" id="currentArtist">AK Tunes</span>
+              </div>
+              <button class="like-btn" id="likeSong" title="Add to favorites" aria-label="Add to favorites" style="display: none;">
+                  <i class="far fa-heart"></i>
+              </button>
+          </div>
+          <div class="controls">
+              <button class="control-btn" id="shuffle" title="Shuffle" aria-label="Toggle shuffle"><i class="fas fa-random"></i></button>
+              <button class="control-btn" id="previous" title="Previous" aria-label="Previous song"><i class="fas fa-step-backward"></i></button>
+              <button id="masterPlay" title="Play/Pause" aria-label="Play or pause"><i class="far fa-play-circle"></i></button>
+              <button class="control-btn" id="next" title="Next" aria-label="Next song"><i class="fas fa-step-forward"></i></button>
+              <button class="control-btn" id="repeat" title="Repeat" aria-label="Toggle repeat"><i class="fas fa-redo"></i></button>
+          </div>
+          <div class="additional-controls">
+              <div class="volume-control">
+                  <button class="control-btn" id="volumeBtn" title="Mute/Unmute" aria-label="Toggle mute"><i class="fas fa-volume-up"></i></button>
+                  <input type="range" id="volumeSlider" min="0" max="100" value="100" aria-label="Volume control" />
+              </div>
+              <button class="control-btn" id="downloadSong" title="Download Current Song" aria-label="Download current song"><i class="fas fa-download"></i></button>
+              <button class="control-btn" id="showFavoritesBtn" title="Show Favorites" aria-label="Show favorite songs"><i class="far fa-heart"></i></button>
+          </div>
+      </div>
+      <div id="downloadStatus" class="download-status">
+          <div class="download-info">
+              <span id="statusText">Preparing download...</span>
+              <span class="download-size" id="downloadSize"></span>
+          </div>
+          <div class="progress-wrapper">
+              <progress id="downloadProgress" value="0" max="100"></progress>
+              <span class="progress-text" id="progressText">0%</span>
+          </div>
+      </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>Loading amazing music...</p>
+  </div>
+
+
+
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const content = document.getElementById("pageContent");
+      const links = document.querySelectorAll(".nav-link");
+      const navLinksContainer = document.getElementById('navLinks');
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+      function loadPage(page, push = true) {
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const loadingText = loadingOverlay?.querySelector("p");
+        
+        if (loadingOverlay) {
+          // Update loading message based on page
+          if (loadingText) {
+            switch(page) {
+              case 'home.html':
+                loadingText.textContent = "Loading amazing music for you ...";
+                break;
+              case 'about.html':
+                loadingText.textContent = "Loading about Us...";
+                break;
+              case 'artists.html':
+                loadingText.textContent = "Finding top artists...";
+                break;
+              case 'contact.html':
+                loadingText.textContent = "Loading contact Us...";
+                break;
+              default:
+                loadingText.textContent = "Loading...";
+            }
+          }
+          loadingOverlay.classList.add("show");
+        }
+
+        fetch("pages/" + page)
+          .then(res => res.text())
+          .then(html => {
+            content.innerHTML = html;
+            if (push) history.pushState({ page }, "", page);
+            links.forEach(l => l.classList.remove("active"));
+            const active = [...links].find(l => l.dataset.page === page);
+            if (active) active.classList.add("active");
+
+            // CRITICAL: Initialize scripts for the newly loaded page
+            if (typeof initPage === 'function') {
+              initPage(page);
+            } else {
+              console.error("initPage function not found in script.js. The script might have failed to load.");
+            }
+          });
+      }
+
+      // Handle direct URL access and page refresh
+      function handleDirectAccess() {
+        const currentPath = window.location.pathname;
+        const fileName = currentPath.split('/').pop();
+        
+        // Check if user is accessing a specific page directly
+        if (fileName && fileName.endsWith('.html') && fileName !== 'index.html') {
+          // Load the requested page
+          loadPage(fileName, false);
+        } else {
+          // Default to home page
+          loadPage("home.html", false);
+        }
+      }
+
+      links.forEach(link => {
+        link.addEventListener("click", e => {
+          e.preventDefault();
+          if (navLinksContainer.classList.contains('active')) {
+            mobileMenuToggle.click(); // Close mobile menu if open
+          }
+          loadPage(link.dataset.page);
+        });
+      });
+
+      window.addEventListener("popstate", e => {
+        const page = (e.state && e.state.page) || 'home.html';
+        loadPage(page, false);
+      });
+
+      // Mobile menu toggle logic
+      mobileMenuToggle.addEventListener('click', function() {
+          navLinksContainer.classList.toggle('active');
+          const icon = this.querySelector('i');
+          icon.classList.toggle('fa-bars');
+          icon.classList.toggle('fa-times');
+      });
+
+      // Load the initial page based on current URL
+      handleDirectAccess();
+    });
+  </script>
+</body>
+</html>

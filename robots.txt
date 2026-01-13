@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://aktunes.netlify.app/sitemap.xml
