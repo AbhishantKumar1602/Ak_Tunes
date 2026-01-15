@@ -46,7 +46,7 @@
   <nav>
     <ul>
       <li>
-        <a href="#" class="brand">
+        <a href="home.html" class="brand" id="brandLogoLink">
           <img src="ak.png" alt="AK Music App Logo" />
           <span>AK Tunes</span>
         </a>
@@ -211,6 +211,15 @@
         }
       }
 
+      // Add event listener for the brand logo to always load home.html
+      const brandLogoLink = document.getElementById('brandLogoLink');
+      if (brandLogoLink) {
+        brandLogoLink.addEventListener('click', e => {
+          e.preventDefault();
+          loadPage('home.html');
+        });
+      }
+
       links.forEach(link => {
         link.addEventListener("click", e => {
           e.preventDefault();
@@ -220,6 +229,7 @@
           loadPage(link.dataset.page);
         });
       });
+
 
       window.addEventListener("popstate", e => {
         const page = (e.state && e.state.page) || 'home.html';

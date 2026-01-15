@@ -34,6 +34,7 @@ let isRepeating = false;
 let isMuted = false;
 let isFavoritesViewActive = false;
 let previousVolume = 1;
+let initialSongs = [];
 
 // Local songs
 const localSongs = [
@@ -516,6 +517,9 @@ async function searchSongsOnline(query) {
         const shuffledSongs = [...allSongs].sort(() => Math.random() - 0.5);
         songs = shuffledSongs;
         lastSearchedSongs = [...shuffledSongs];
+        if (initialSongs.length === 0) {
+            initialSongs = [...shuffledSongs];
+        }
         renderSongs(songs);
         hideLoading();
 
@@ -582,6 +586,9 @@ async function searchSongsOnline(query) {
         const shuffledLocalSongs = [...localSongs].sort(() => Math.random() - 0.5);
         songs = shuffledLocalSongs;
         lastSearchedSongs = [...shuffledLocalSongs];
+        if (initialSongs.length === 0) {
+            initialSongs = [...shuffledLocalSongs];
+        }
         renderSongs(songs);
         showNotification('Using offline songs', 'warning');
         hideLoading();
@@ -811,6 +818,7 @@ function initApp() {
     const shuffledLocalSongs = [...localSongs].sort(() => Math.random() - 0.5);
     songs = shuffledLocalSongs;
     lastSearchedSongs = [...shuffledLocalSongs];
+    initialSongs = [...shuffledLocalSongs];
 
     // Add dynamic CSS styles for the app
     if (!document.getElementById('dynamicStyles')) {
@@ -1181,6 +1189,17 @@ function initHomePage() {
     const searchInput = document.getElementById("searchInput");
     const viewToggleBtns = document.querySelectorAll(".view-btn");
     const songItemContainer = document.getElementById("songList");
+    const songListTitle = document.getElementById('songListTitle');
+
+    // Reset song list to initial songs for home page
+    songs = [...initialSongs];
+    lastSearchedSongs = [...initialSongs]; // Also reset last searched to initial songs
+    renderSongs(songs);
+
+    // Reset song list title
+    if (songListTitle) {
+        songListTitle.textContent = "All Songs"; // Or whatever your default title is
+    }
 
     // View toggle functionality
     if (viewToggleBtns.length > 0 && songItemContainer) {
@@ -1220,9 +1239,8 @@ function initHomePage() {
                 if (isFavoritesViewActive) {
                     renderFavoriteSongs();
                 } else {
-                    // When input is cleared, show history instead of last search
-                    showSearchHistory();
-                    renderSongs(lastSearchedSongs);
+                    // When input is cleared, re-fetch the original API songs
+                    searchSongsOnline(searchSongQuery);
                 }
                 return;
             }
@@ -1276,7 +1294,7 @@ function initHomePage() {
 
     // Initial song fetch for home page
     // Check if we only have the local fallback songs
-    if (songs.length <= localSongs.length) {
+    if (songs.length <= localSongs.length || initialSongs.length === 0) { // Also check if initialSongs is empty
         searchSongsOnline(searchSongQuery);
     } else {
         // If we already have a list from a previous search, just render it
@@ -1480,39 +1498,18 @@ function renderArtistCard(artist) {
     // Add click handler to load artist songs
     artistCard.addEventListener('click', async (e) => {
         e.preventDefault();
-        // Immediately navigate to home page
+        // Immediately navigate to home page, which will trigger initHomePage() and reset songs to initialSongs
         await loadPage('home.html', true, false);
         
-        // Set up the page for artist songs
-        const songListTitle = document.getElementById('songListTitle');
-        if (songListTitle) {
-            songListTitle.textContent = `Top Songs by ${artist.name}`;
-        }
-        
-        // Initialize empty songs array
-        songs = [];
-        lastSearchedSongs = [];
-        let collectedSongs = [];
-        let renderTimeout;
-        
-        // Function to render songs with debounce
-        const debouncedRender = () => {
-            clearTimeout(renderTimeout);
-            renderTimeout = setTimeout(() => {
-                songs = [...songs, ...collectedSongs];
-                lastSearchedSongs = [...songs];
-                renderSongs(songs);
-                collectedSongs = [];
-            }, 1000); // Wait 1 second before rendering
-        };
-        
-        // Start loading songs in the background
+        // Now fetch artist-specific songs
         try {
-            let page = 1;
-            let hasMore = true;
-            
-            while (hasMore) {
-                const res = await fetch(`https://saavn.sumit.co/api/artists/${artist.id}/songs?page=${page}&limit=50`);
+            showLoading(`Loading songs by ${artist.name}...`);
+            let allArtistSongs = [];
+            const limit = 50;
+            const maxPages = 10; // Limit to 10 pages for artist songs
+
+            for (let page = 1; page <= maxPages; page++) {
+                const res = await fetch(`https://saavn.sumit.co/api/artists/${artist.id}/songs?page=${page}&limit=${limit}`);
                 if (!res.ok) throw new Error('Failed to fetch artist songs');
                 const data = await res.json();
                 
@@ -1529,44 +1526,40 @@ function renderArtistCard(artist) {
                     }))
                     .filter(song => song.filePath);
                 
-                if (newSongs.length > 0) {
-                    // Collect new songs
-                    collectedSongs.push(...newSongs);
-                    
-                    // If this is the first batch, render immediately
-                    if (songs.length === 0) {
-                        songs = [...newSongs];
-                        lastSearchedSongs = [...songs];
-                        renderSongs(songs);
-                        collectedSongs = [];
-                    } else {
-                        // Otherwise use debounced render
-                        debouncedRender();
-                    }
-                }
-                
-                // Check if we should continue loading more
-                hasMore = newSongs.length > 0 && page < 10; // Limit to 10 pages max
-                page++;
+                allArtistSongs.push(...newSongs);
+                if (newSongs.length === 0) break; // Stop if no more songs on this page
                 
                 // Small delay to prevent rate limiting
                 await new Promise(resolve => setTimeout(resolve, 300));
             }
-            
-            // Final render to ensure all songs are displayed
-            if (collectedSongs.length > 0) {
-                clearTimeout(renderTimeout);
-                songs = [...songs, ...collectedSongs];
+
+            if (allArtistSongs.length > 0) {
+                // Shuffle and limit results for performance
+                const shuffledArtistSongs = allArtistSongs.sort(() => Math.random() - 0.5);
+                songs = shuffledArtistSongs.slice(0, 300); // max 300 songs
                 lastSearchedSongs = [...songs];
-                renderSongs(songs);
-            }
-            
-            if (songs.length === 0) {
+                renderSongs(songs); // Render the artist-specific songs
+
+                const songListTitle = document.getElementById('songListTitle');
+                if (songListTitle) {
+                    songListTitle.textContent = `Top Songs by ${artist.name}`;
+                }
+            } else {
                 showNotification(`No songs found for ${artist.name}`, 'warning');
+                // If no songs found for artist, ensure home page defaults are shown
+                songs = [...initialSongs];
+                lastSearchedSongs = [...initialSongs];
+                renderSongs(songs);
             }
         } catch (error) {
             console.error('Error loading artist songs:', error);
             showNotification('Could not load songs for ' + artist.name, 'error');
+            // On error, ensure home page defaults are shown
+            songs = [...initialSongs];
+            lastSearchedSongs = [...initialSongs];
+            renderSongs(songs);
+        } finally {
+            hideLoading();
         }
     });
     
