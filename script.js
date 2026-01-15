@@ -129,7 +129,7 @@ function renderSongs(songArray) {
         const songNameHTML = song.name.length > 25 ? `<marquee direction="left" scrollamount="3">${song.name}</marquee>` : song.name;
         const songItem = document.createElement("div");
         songItem.className = "songItem fade-in";
-        songItem.dataset.index = index;
+        songItem.dataset.songId = song.filePath; // Use filePath as a unique ID
         songItem.style.animationDelay = `${index * 0.1}s`;
         
         songItem.innerHTML = `
@@ -138,7 +138,7 @@ function renderSongs(songArray) {
                 <div class="song-name">${songNameHTML}</div>
                 <div class="song-artist">${song.artist}</div>
             </div>
-            <i class="fas fa-play-circle songPlay" data-index="${index}"></i>
+            <i class="fas fa-play-circle songPlay" data-song-id="${song.filePath}"></i>
         `;
         songList.appendChild(songItem);
     });
@@ -152,21 +152,27 @@ function addSongItemClickHandlers() {
     document.querySelectorAll(".songItem").forEach(item => {
         item.addEventListener("click", (e) => {
             if (e.target.closest('.songPlay')) return; // Don't trigger when clicking play button
-            playSongByIndex(parseInt(item.dataset.index));
+            playSongById(item.dataset.songId);
         });
     });
 
     document.querySelectorAll(".songPlay").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            playSongByIndex(parseInt(btn.dataset.index));
+            playSongById(btn.dataset.songId);
         });
     });
 }
 
 
 // Enhanced play function with better visual feedback
-function playSongByIndex(index) {
+function playSongById(songId) {
+    const index = songs.findIndex(s => s.filePath === songId);
+    if (index === -1) {
+        console.error(`Song with ID "${songId}" not found.`);
+        return;
+    }
+
     if (index < 0 || index >= songs.length) return;
     
     currentSongIndex = index;
@@ -178,12 +184,16 @@ function playSongByIndex(index) {
     updateCurrentSongUI(song);
     
     audio.play().catch(error => {
+        // Ignore AbortError which happens when the user quickly changes songs.
+        if (error.name === 'AbortError') {
+            return;
+        }
         console.error('Error playing audio:', error);
         showNotification('Error playing this song', 'error');
     });
 
     // Update play icon for the current song
-    const activeIcon = document.querySelector(`.songPlay[data-index="${index}"]`);
+    const activeIcon = document.querySelector(`.songPlay[data-song-id="${song.filePath}"]`);
     if (activeIcon) {
         activeIcon.classList.remove("fa-play-circle");
         activeIcon.classList.add("fa-pause-circle");
@@ -194,7 +204,7 @@ function playSongByIndex(index) {
         item.classList.remove('active');
     });
     
-    const currentSongItem = document.querySelector(`.songItem[data-index="${index}"]`);
+    const currentSongItem = document.querySelector(`.songItem[data-song-id="${song.filePath}"]`);
     if (currentSongItem) {
         currentSongItem.classList.add('active');
     }
@@ -312,7 +322,7 @@ function renderFavoriteSongs() {
             const displayName = song.name
             const songItem = document.createElement("div");
             songItem.className = "songItem fade-in";
-            songItem.dataset.index = index; // Use the original index
+            songItem.dataset.songId = song.filePath; // Use the song's filepath as the ID
             songItem.style.animationDelay = `${animationIndex * 0.1}s`;
 
             songItem.innerHTML = `
@@ -321,7 +331,7 @@ function renderFavoriteSongs() {
                     <div class="song-name">${displayName}</div>
                     <div class="song-artist">${song.artist}</div>
                 </div>
-                <i class="fas fa-play-circle songPlay" data-index="${index}"></i>
+                <i class="fas fa-play-circle songPlay" data-song-id="${song.filePath}"></i>
             `;
             songList.appendChild(songItem);
             animationIndex++;
@@ -333,12 +343,12 @@ function renderFavoriteSongs() {
 
     // If a song is currently playing and it's a favorite, update its UI
     if (!audio.paused) {
-        const activeIcon = document.querySelector(`.songPlay[data-index="${currentSongIndex}"]`);
+        const activeIcon = document.querySelector(`.songPlay[data-song-id="${songs[currentSongIndex].filePath}"]`);
         if (activeIcon) {
             activeIcon.classList.remove("fa-play-circle");
             activeIcon.classList.add("fa-pause-circle");
         }
-        const currentSongItem = document.querySelector(`.songItem[data-index="${currentSongIndex}"]`);
+        const currentSongItem = document.querySelector(`.songItem[data-song-id="${songs[currentSongIndex].filePath}"]`);
         if (currentSongItem) {
             currentSongItem.classList.add('active');
         }
@@ -381,7 +391,7 @@ masterPlay.addEventListener("click", () => {
     }
     
     if (!audio.src) {
-        playSongByIndex(currentSongIndex);
+        playSongById(songs[currentSongIndex].filePath);
         return;
     }
 
@@ -404,7 +414,7 @@ audio.addEventListener("pause", () => {
     masterPlayIcon.classList.add("fa-play-circle");
     playingGif.style.opacity = 0;
 
-    const activeIcon = document.querySelector(`.songPlay[data-index="${currentSongIndex}"]`);
+    const activeIcon = document.querySelector(`.songPlay[data-song-id="${songs[currentSongIndex].filePath}"]`);
     if (activeIcon) {
         activeIcon.classList.remove("fa-pause-circle");
         activeIcon.classList.add("fa-play-circle");
@@ -418,7 +428,7 @@ audio.addEventListener("play", () => {
     playingGif.style.opacity = 1;
 
     resetSongItemIcons();
-    const activeIcon = document.querySelector(`.songPlay[data-index="${currentSongIndex}"]`);
+    const activeIcon = document.querySelector(`.songPlay[data-song-id="${songs[currentSongIndex].filePath}"]`);
     if (activeIcon) {
         activeIcon.classList.remove("fa-play-circle");
         activeIcon.classList.add("fa-pause-circle");
@@ -586,7 +596,7 @@ function appendSongsToList(newSongs) {
         const songNameHTML = song.name.length > 25 ? `<marquee direction="left" scrollamount="3">${song.name}</marquee>` : song.name;
         const songItem = document.createElement("div");
         songItem.className = "songItem fade-in";
-        songItem.dataset.index = songs.length - newSongs.length + index;
+        songItem.dataset.songId = song.filePath;
         songItem.style.animationDelay = `0s`;
         songItem.innerHTML = `
             <img src="${song.coverPath}" alt="Free royalty-free music download - AK Tunes" onerror="this.src='https://via.placeholder.com/60x60/6366f1/ffffff?text=🎵'" />
@@ -594,7 +604,7 @@ function appendSongsToList(newSongs) {
                 <div class="song-name">${songNameHTML}</div>
                 <div class="song-artist">${song.artist}</div>
             </div>
-            <i class="fas fa-play-circle songPlay" data-index="${songItem.dataset.index}"></i>
+            <i class="fas fa-play-circle songPlay" data-song-id="${song.filePath}"></i>
         `;
         songList.appendChild(songItem);
     });
@@ -620,14 +630,14 @@ function getPreviousIndex() {
 document.getElementById("previous").addEventListener("click", () => {
     if (songs.length === 0) return;
     currentSongIndex = getPreviousIndex();
-    playSongByIndex(currentSongIndex);
+    playSongById(songs[currentSongIndex].filePath);
 });
 
 // Next button
 document.getElementById("next").addEventListener("click", () => {
     if (songs.length === 0) return;
     currentSongIndex = getNextIndex();
-    playSongByIndex(currentSongIndex);
+    playSongById(songs[currentSongIndex].filePath);
 });
 
 // Enhanced auto-play with repeat functionality
@@ -635,10 +645,10 @@ audio.addEventListener("ended", () => {
     if (songs.length === 0) return;
     
     if (isRepeating) {
-        playSongByIndex(currentSongIndex);
+        playSongById(songs[currentSongIndex].filePath);
     } else {
         currentSongIndex = getNextIndex();
-        playSongByIndex(currentSongIndex);
+        playSongById(songs[currentSongIndex].filePath);
     }
 });
 
@@ -653,7 +663,7 @@ document.addEventListener("keydown", (e) => {
             e.preventDefault();
             if (!audio.src || audio.src.trim() === "") {
                 if (songs.length > 0) {
-                    playSongByIndex(currentSongIndex);
+                    playSongById(songs[currentSongIndex].filePath);
                 }
             } else if (audio.paused || audio.currentTime <= 0) {
                 audio.play();
@@ -680,14 +690,14 @@ document.addEventListener("keydown", (e) => {
             e.preventDefault();
             if (songs.length === 0) return;
             currentSongIndex = getNextIndex();
-            playSongByIndex(currentSongIndex);
+            playSongById(songs[currentSongIndex].filePath);
             break;
 
         case "ArrowLeft":
             e.preventDefault();
             if (songs.length === 0) return;
             currentSongIndex = getPreviousIndex();
-            playSongByIndex(currentSongIndex);
+            playSongById(songs[currentSongIndex].filePath);
             break;
 
         case "KeyS":
@@ -1434,7 +1444,7 @@ async function fetchArtistSongsUnlimited(artistId, artistName) {
 function createSongElement(song, index) {
     const songItem = document.createElement('div');
     songItem.className = 'songItem';
-    songItem.dataset.index = index;
+    songItem.dataset.songId = song.filePath;
     
     songItem.innerHTML = `
         <img src="${song.coverPath}" alt="${song.name}">
@@ -1442,7 +1452,7 @@ function createSongElement(song, index) {
             <span class="songName">${song.name}</span>
             <span class="artistName">${song.artist}</span>
         </div>
-        <div class="songItemPlay songPlay" data-index="${index}">
+        <div class="songItemPlay songPlay" data-song-id="${song.filePath}">
             <i class="fas fa-play-circle"></i>
         </div>
         ${song.isLiked ? '<i class="fas fa-heart liked"></i>' : '<i class="far fa-heart"></i>'}
